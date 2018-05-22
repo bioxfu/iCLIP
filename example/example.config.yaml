@@ -1,0 +1,38 @@
+species: arabidopsis
+
+seq_info:
+  type: iCLIP
+  mode: SE
+
+raw_reads: /data1/HJY/raw_data/HJY_Mecp2_iCLIP_omicscore20180507/Undetermined_S0_L006_R1_001.fastq.gz
+
+# format of sample names: name.barcode
+samples:
+  - Mecp2_ctrl_rep1.GGCG
+  - Mecp2_ctrl_rep2.AACC
+  - Mecp2_ctrl_rep3.CGGA
+  - Mecp2_expt_rep1.TGGC
+  - Mecp2_expt_rep2.CCAC
+  - Mecp2_expt_rep3.GGCA
+
+groups:
+  - Mecp2_ctrl
+  - Mecp2_expt
+
+adapt: TGAGATCGGAAG
+
+cpu: 30
+
+Rscript_path: /home/xfu/R/3.2.4/bin/Rscript
+
+DNA: /home/xfu/Gmatic6/genome/mm10/mm10
+
+RNA: /home/xfu/Gmatic6/genome/mm10/gencode.vM17.transcripts
+
+exon2genome: /home/xfu/Gmatic6/gene/mm10_vM17/gencode.vM17.exons2genome.bed
+
+feature: /home/xfu/Gmatic6/gene/mm10_vM17/gencode_vM17_all_feature.bed
+
+GTF: /home/xfu/Gmatic6/gene/mm10_vM17/gencode.vM17.annotation.gtf.gz
+
+IGV: /home/xfu/igv/genomes/mm10.genome
