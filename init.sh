@@ -1,6 +1,5 @@
-source activate gmatic
-conda env export > doc/environment.yml
+source activate icount
 
-if [ ! -d fastqc ]; then
-	mkdir -p fastq fastqc clean/fasta clean/trim3adapt clusters mapping/map2genome mapping/unmap2genome mapping/map2trans motif reproduce sites stat track 
+if [ ! -d fastq ]; then
+	mkdir -p fastq fastqc/raw fastqc/trim trim dedup mapping xlsites peaks reproduce merge motif figure table track 
 fi

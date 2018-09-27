@@ -15,8 +15,8 @@ do
     
     jellyfish count -m $K -s 100M motif/$WINDOW/crosslink.window.random.$P.$i.fa -o motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.jf
     
-    jellyfish dump motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.jf_0 -c -t |sort > motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.dumps
+    jellyfish dump motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.jf -c -t |sort > motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.dumps
     
-    rm motif/$WINDOW/crosslink.window.random.$P.$i.bed motif/$WINDOW/crosslink.window.random.$P.$i.fa motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.jf_0
+    rm motif/$WINDOW/crosslink.window.random.$P.$i.bed motif/$WINDOW/crosslink.window.random.$P.$i.fa motif/$WINDOW/crosslink.window.random.${K}mer.$P.$i.jf
 done
 

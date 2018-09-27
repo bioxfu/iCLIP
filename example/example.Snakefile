@@ -3,14 +3,31 @@ configfile: "config.yaml"
 rule all:
 	input:
 		expand('fastq/{sample}.fastq.gz', sample=config['samples']),
-		expand('fastqc/{sample}_fastqc.html', sample=config['samples']),
-		expand('clean/{sample}.clean.fa', sample=config['samples']),
-		'stat/reads_stat.tsv',
-		expand('sites/{sample}.sites.bed', sample=config['samples']),
-		expand('track/{sample}.tdf', sample=config['samples']),
-		'reproduce/reproduce.counts.tsv',
-		'reproduce/reproduce.counts.pdf',
-		'clusters/stat/tag_site_clusters.counts.tsv',
+		expand('fastqc/raw/{sample}_fastqc.html', sample=config['samples']),
+		expand('trim/{sample}.trim3adapter.fastq.gz', sample=config['samples']),
+		expand('fastqc/trim/{sample}.trim3adapter_fastqc.html', sample=config['samples']),
+		expand('dedup/{sample}.dedup.fa', sample=config['samples']),
+		expand('mapping/{sample}', sample=config['samples']),
+		expand('mapping/{sample}/Aligned.sortedByCoord.out.bam', sample=config['samples']),
+		expand('xlsites/{sample}_reads_unique.bed', sample=config['samples']),
+		expand('xlsites/{sample}_reads_multiple.bed', sample=config['samples']),
+		expand('xlsites/{sample}_reads_skipped.bam', sample=config['samples']),
+		expand('peaks/{sample}_reads_unique_peaks.bed', sample=config['samples']),
+		expand('peaks/{sample}_reads_unique_peaks_scores.tsv', sample=config['samples']),
+		'reproduce/crosslink_sites_reproduce.pdf',
+		'merge/merge_ALL_crosslink_sites.bed',
+		'merge/merge_ALL_crosslink_sites_sig.bed',
+		'merge/merge_ALL_crosslink_sites_sig_clusters.bed',
+		'merge/merge_ALL_crosslink_sites_anno_biotype.tab',
+		'merge/merge_ALL_crosslink_sites_anno_geneid.tab',
+		'merge/merge_ALL_crosslink_sites_sig_anno_biotype.tab',
+		'merge/merge_ALL_crosslink_sites_sig_anno_geneid.tab',
+		'merge/merge_ALL_crosslink_sites_summary.tab',
+		'merge/merge_ALL_crosslink_sites_sig_summary.tab',
+		'figure/crosslink_sites_distr.pdf',
+		'table/stats_tab.tsv',
+		'track/merge_ALL_crosslink_sites.tdf',
+		'track/merge_ALL_crosslink_sites_sig.tdf',
 
 
 rule split_fastq:
@@ -21,142 +38,226 @@ rule split_fastq:
 	shell:
 		'bin/split_fastq_by_barcode.py {input} {output}'
 
-rule fastqc:
+rule fastqc_raw:
 	input:
 		'fastq/{sample}.fastq.gz'
 	output:
-		'fastqc/{sample}_fastqc.html'
+		'fastqc/raw/{sample}_fastqc.html'
+	params:
+		conda = config['conda_path']
 	shell:
-		'fastqc -o fastqc {input}'
-
-rule fastq2fasta:
-	input:
-		'fastq/{sample}.fastq.gz'
-	output:
-		'clean/fasta/{sample}.fa.gz'
-	shell:
-		"zcat {input} | fastq_to_fasta -Q33 -r -n -v -z -o {output}"
+		'{params.conda}/fastqc -o fastqc/raw {input}'
 
 rule trim3adapter:
 	input:
-		'clean/fasta/{sample}.fa.gz'
+		'fastq/{sample}.fastq.gz'
 	output:
-		'clean/trim3adapt/{sample}.trim.fa.gz'
+		'trim/{sample}.trim3adapter.fastq.gz'
 	params:
+		conda = config['conda_path'],
 		adapt = config['adapt']
 	shell:
-		 "cutadapt -f fasta -a {params.adapt} -m15 --trimmed-only {input} | gzip -c > {output}"
+		 "{params.conda}/cutadapt -f fastq -a {params.adapt} -m15 {input} | gzip -c > {output}"
+
+rule fastqc_trim:
+	input:
+		'trim/{sample}.trim3adapter.fastq.gz'
+	output:
+		'fastqc/trim/{sample}.trim3adapter_fastqc.html'
+	params:
+		conda = config['conda_path']
+	shell:
+		'{params.conda}/fastqc -o fastqc/trim {input}'
 
 rule remove_PCR_duplicates:
 	input:
-		'clean/trim3adapt/{sample}.trim.fa.gz'
+		'trim/{sample}.trim3adapter.fastq.gz'
 	output:
-		'clean/{sample}.clean.fa'
-	shell:
-		 "zcat {input} | grep -v '>' | bin/split_barcode.py | sort | uniq | cut -f1 | bin/seq2fasta.py > {output}"
-
-rule reads_map2genome:
-	input:
-		'clean/{sample}.clean.fa'
-	output:
-		map2genome = 'mapping/map2genome/{sample}.map2genome'
+		'dedup/{sample}.dedup.fa'
 	params:
-		DNA = config['DNA']
+		conda = config['conda_path']
 	shell:
-		 "bowtie -p5 -f -v1 -k2 -m1 {params.DNA} {input} {output.map2genome}"
+		 "zcat {input} | {params.conda}/fastq_to_fasta -Q33 -r -n | bin/split_barcode.py | sort | uniq | cut -f1 | bin/seq2fasta.py > {output}"
 
-rule reads_map2trans:
+rule mapping:
 	input:
-		'clean/{sample}.clean.fa'
+		'dedup/{sample}.dedup.fa'
 	output:
-		unmap2genome = 'mapping/unmap2genome/{sample}.unmap2genome.fa',
-		map2trans = 'mapping/map2trans/{sample}.map2trans'
+		dir = 'mapping/{sample}',
+		bam = 'mapping/{sample}/Aligned.sortedByCoord.out.bam'
 	params:
-		DNA = config['DNA'],
-		RNA = config['RNA']
+		conda = config['conda_path'],
+		genome = config['genome'],
+		annotation = config['annotation'],
+		mismatch = config['mismatch'],
+		cpu = config['cpu']
 	shell:
-		 "bowtie -p5 -f -v1 {params.DNA} {input} --un {output.unmap2genome} > /dev/null; bowtie -p5 -f -v1 {params.RNA} {output.unmap2genome} |sed -r 's/\|.+\|\t/\t/' > {output.map2trans}"	
+		'mkdir -p {output.dir} && export ICOUNT_TMP_ROOT={output.dir}.tmp && {params.conda}/iCount mapstar -mis {params.mismatch} --threads {params.cpu} {input} {params.genome} {output.dir} --annotation {params.annotation}'
 
-rule reads_num:
+rule xlsites_reads:
 	input:
-		fa = 'clean/{sample}.clean.fa',
-		map2genome = 'mapping/map2genome/{sample}.map2genome',
-		map2trans = 'mapping/map2trans/{sample}.map2trans'
+		'mapping/{sample}/Aligned.sortedByCoord.out.bam'
 	output:
-		fa = 'stat/{sample}.clean.fa.num',
-		map2genome = 'stat/{sample}.map2genome.num',
-		map2trans = 'stat/{sample}.map2trans.num',
-	shell:
-		"echo -e \"{input.fa}\\t`grep -c '>' {input.fa}`\" > {output.fa}; echo -e \"{input.map2genome}\\t`cut -f1 {input.map2genome}|sort|uniq|wc -l`\" > {output.map2genome}; echo -e \"{input.map2trans}\\t`cut -f1 {input.map2trans}|sort|uniq|wc -l`\" > {output.map2trans}"
-
-rule reads_stat:
-	input:
-		['stat/{sample}.clean.fa.num'.format(sample=x) for x in config['samples']],
-		['stat/{sample}.map2genome.num'.format(sample=x) for x in config['samples']],
-		['stat/{sample}.map2trans.num'.format(sample=x) for x in config['samples']]
-	output:
-		'stat/reads_stat.tsv'
+		'xlsites/{sample}_reads_unique.bed',
+		'xlsites/{sample}_reads_multiple.bed',
+		'xlsites/{sample}_reads_skipped.bam'
 	params:
-		Rscript = config['Rscript_path']
+		conda = config['conda_path']
 	shell:
-		"cat stat/*.num|sort > stat/all_num; {params.Rscript} bin/reads_stat.R"
+		'{params.conda}/iCount xlsites {input} {output} --group_by start --quant reads'
 
-rule get_iclip_site_genome:
+rule significant_xlsites:
 	input:
-		'mapping/map2genome/{sample}.map2genome'
+		'xlsites/{sample}_reads_unique.bed',
 	output:
-		'sites/bed/{sample}.genome.bed'
-	shell:
-		"cat {input}|bin/upstream_1bp_pos_genome.py|sortBed > {output}"
-
-rule get_iclip_site_trans:
-	input:
-		'mapping/map2trans/{sample}.map2trans'
-	output:
-		trans = 'sites/bed/{sample}.trans.bed',
-		trans2genome = 'sites/bed/{sample}.trans2genome.bed'
+		bed = 'peaks/{sample}_reads_unique_peaks.bed',
+		tsv = 'peaks/{sample}_reads_unique_peaks_scores.tsv'
 	params:
-		exon2genome = config['exon2genome']
+		conda = config['conda_path'],
+		segmentation = config['segmentation'],
+		FDR = config['FDR']
 	shell:
-		"cat {input}|bin/upstream_1bp_pos_trans.py|sortBed > {output.trans}; bedtools intersect -a {output.trans} -b {params.exon2genome} -wa -wb|bin/trans_coor_convert.py|sortBed|uniq > {output.trans2genome}"
+		'{params.conda}/iCount peaks {params.segmentation} {input} {output.bed} --scores {output.tsv} --fdr {params.FDR}'
 
-rule get_iclip_site_all:
+rule reproduce:
 	input:
-		genome = 'sites/bed/{sample}.genome.bed',
-		trans2genome = 'sites/bed/{sample}.trans2genome.bed'
+		["peaks/{sample}_reads_unique_peaks.bed".format(sample=x) for x in config['samples']]
 	output:
-		bed = 'sites/{sample}.sites.bed',
-		bedGraph = 'track/{sample}.sites.bedGraph',
-	shell:
-		"cat {input.genome} {input.trans2genome}|sort -k4|groupBy -g 4 -c 5 -o count -full|awk -F '\\t' -vOFS='\\t' '{{print $1,$2,$3,$4,$8,$6}}'|sortBed > {output.bed}; cut -f1,2,3,5 {output.bed} > {output.bedGraph}"
-
-rule bedgraph2tdf:
-	input:
-		'track/{sample}.sites.bedGraph'
-	output:
-		'track/{sample}.tdf'
-	params:
-		IGV = config['IGV']
-	shell:
-		"igvtools toTDF {input} {output} {params.IGV}"
-
-rule reproduced_sites:
-	input:
-		['sites/{sample}.sites.bed'.format(sample=x) for x in config['samples']]
-	output:
-		tsv = 'reproduce/reproduce.counts.tsv',
-		pdf = 'reproduce/reproduce.counts.pdf'
+		'reproduce/crosslink_sites_reproduce.pdf'
 	shell:
 		'bin/reproduced_sites.sh'
 
-rule tag_clustering:
+rule merge_xlsites:
 	input:
-		['sites/{sample}.sites.bed'.format(sample=x) for x in config['samples']]
+		["xlsites/{sample}_reads_unique.bed".format(sample=x) for x in config['samples']]
 	output:
-		'clusters/stat/tag_site_clusters.counts.tsv',
-	params:
-		feature = config['feature'],
-		gene = config['GTF']
+		'merge/merge_ALL_crosslink_sites.bed'
 	shell:
-		'bin/tag_clustering.sh {params.feature} {params.gene}'
+		'bin/merge_rep_sites.sh'
+
+rule significant_merged_xlsites:
+	input:
+		'merge/merge_ALL_crosslink_sites.bed'
+	output:
+		'merge/merge_ALL_crosslink_sites_sig.bed'
+	params:
+		conda = config['conda_path'],
+		segmentation = config['segmentation'],
+		FDR = config['FDR']
+	shell:
+		'{params.conda}/iCount peaks {params.segmentation} {input} {output.bed} --fdr {params.FDR}'
+
+rule clusters:
+	input:
+		'merge/merge_ALL_crosslink_sites_sig.bed'
+	output:
+		'merge/merge_ALL_crosslink_sites_sig_clusters.bed'
+	params:
+		conda = config['conda_path'],
+		cluster_dist = config['cluster_dist']
+	shell:
+		'{params.conda}/bedtools cluster -d {params.cluster_dist} -i {input} > {output}'
+ 
+rule xlsites_sig_annotate_biotype:
+	input:
+		'merge/merge_ALL_crosslink_sites_sig.bed'
+	output:
+		'merge/merge_ALL_crosslink_sites_sig_anno_biotype.tab',
+	params:
+		conda = config['conda_path'],
+		segmentation = config['segmentation']
+	shell:
+		'{params.conda}/iCount annotate --subtype biotype {params.segmentation} {input} {output}'
+
+rule xlsites_sig_annotate_gene_id:
+	input:
+		'merge/merge_ALL_crosslink_sites_sig.bed'
+	output:
+		'merge/merge_ALL_crosslink_sites_sig_anno_geneid.tab',
+	params:
+		conda = config['conda_path'],
+		segmentation = config['segmentation']
+	shell:
+		'{params.conda}/iCount annotate --subtype gene_id {params.segmentation} {input} {output}'
+
+rule xlsites_ALL_annotate_biotype:
+	input:
+		'merge/merge_ALL_crosslink_sites.bed'
+	output:
+		'merge/merge_ALL_crosslink_sites_anno_biotype.tab',
+	params:
+		conda = config['conda_path'],
+		segmentation = config['segmentation']
+	shell:
+		'{params.conda}/iCount annotate --subtype biotype {params.segmentation} {input} {output}'
+
+rule xlsites_ALL_annotate_gene_id:
+	input:
+		'merge/merge_ALL_crosslink_sites.bed'
+	output:
+		'merge/merge_ALL_crosslink_sites_anno_geneid.tab',
+	params:
+		conda = config['conda_path'],
+		segmentation = config['segmentation']
+	shell:
+		'{params.conda}/iCount annotate --subtype gene_id {params.segmentation} {input} {output}'
+
+rule xlsites_summary_all:
+	input:
+		'merge/merge_ALL_crosslink_sites_anno_geneid.tab',
+	output:
+		'merge/merge_ALL_crosslink_sites_summary.tab',
+	params:
+		conda = config['conda_path'],
+	shell:
+		'bin/sites_summary.sh {input} {output}'
+
+rule xlsites_summary_sig:
+	input:
+		'merge/merge_ALL_crosslink_sites_sig_anno_geneid.tab',
+	output:
+		sig = 'merge/merge_ALL_crosslink_sites_sig_summary.tab',
+	params:
+		conda = config['conda_path'],
+	shell:
+		'bin/sites_summary.sh {input} {output}'
+
+rule xlsites_distr:
+	input:
+		'merge/merge_ALL_crosslink_sites_sig_summary.tab',
+		'merge/merge_ALL_crosslink_sites_summary.tab'
+	output:
+		'figure/crosslink_sites_distr.pdf'
+	shell:
+		'bin/xlsites_distr.R {input} {output}'
+
+rule stats_tab:
+	input:
+		["xlsites/{sample}_reads_unique.bed".format(sample=x) for x in config['samples']],
+	output:
+		'table/stats_tab.tsv'		
+	shell:
+		'bin/stats.sh'
+
+rule bed2bedgraph:
+	input:
+		sig = 'merge/merge_ALL_crosslink_sites_sig.bed',
+		ALL = 'merge/merge_ALL_crosslink_sites.bed'
+	output:
+		sig = 'track/merge_ALL_crosslink_sites_sig.bedGraph',
+		ALL = 'track/merge_ALL_crosslink_sites.bedGraph'
+	shell:
+		"cut -f1,2,3,5 {input.sig} > {output.sig}; cut -f1,2,3,5 {input.ALL} > {output.ALL}"
+
+rule bedgraph2tdf:
+	input:
+		sig = 'track/merge_ALL_crosslink_sites_sig.bedGraph',
+		ALL = 'track/merge_ALL_crosslink_sites.bedGraph'
+	output:
+		sig = 'track/merge_ALL_crosslink_sites_sig.tdf',
+		ALL = 'track/merge_ALL_crosslink_sites.tdf'
+	params:
+		IGV = config['IGV']
+	shell:
+		"igvtools toTDF {input.sig} {output.sig} {params.IGV}; igvtools toTDF {input.ALL} {output.ALL} {params.IGV}"
 

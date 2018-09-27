@@ -16,5 +16,12 @@ track/
 .RData
 homer/
 igv.log
-
+dedup/
+figure/
+merge/
+peaks/
+table/
+trim/
+xlsites/
+logo/
 
