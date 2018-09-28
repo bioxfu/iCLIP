@@ -1,4 +1,4 @@
-species: arabidopsis
+species: mouse
 
 seq_info:
   type: iCLIP
@@ -14,10 +14,6 @@ samples:
   - Mecp2_expt_rep1.TGGC
   - Mecp2_expt_rep2.CCAC
   - Mecp2_expt_rep3.GGCA
-
-groups:
-  - Mecp2_ctrl
-  - Mecp2_expt
 
 adapt: TGAGATCGGAAG
 
