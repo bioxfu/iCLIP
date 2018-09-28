@@ -1,5 +1,6 @@
-K=6
-WINDOW=11nt.window
+SITES=$1
+K=$2
+WINDOW=$3
 
 GENOME=$HOME/Gmatic7/iCount/mus_musculus.88.fa
 GENOMESIZE=$HOME/Gmatic7/iCount/mus_musculus.88.chrLength
@@ -7,7 +8,7 @@ EXONS=$HOME/Gmatic7/iCount/mus_musculus.88.pc.gene.bed
 CPU=8
 
 mkdir -p motif/$WINDOW
-sort -k5 -n -r merge/merge_ALL_crosslink_sites_sig.bed|awk '{if($5>0)print}' > motif/$WINDOW/crosslink.bed
+sort -k5 -n -r $SITES|awk '{if($5>0)print}' > motif/$WINDOW/crosslink.bed
 
 if [ "$WINDOW" == "21nt.window" ]
 then
@@ -30,5 +31,3 @@ grep -v 'UUU' motif/$WINDOW/motifs.${K}mer.zscore.tsv > motif/$WINDOW/motifs.${K
 bin/iCLIP_plot_zscore.R motif/$WINDOW/motifs.${K}mer.zscore.filtUUU.tsv motif/$WINDOW/motifs.${K}mer.zscore.filtUUU.pdf
 
 rm motif/$WINDOW/crosslink.window.${K}mer.list motif/$WINDOW/crosslink.window.random.${K}mer.*.dumps motif/$WINDOW/crosslink.window.${K}mer.dumps motif/$WINDOW/crosslink.window.bed
-
-
