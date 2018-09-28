@@ -24,7 +24,7 @@ jellyfish count -m $K -s 100M -t $CPU motif/$NAME/$WINDOW/crosslink.window.fa -o
 jellyfish dump motif/$NAME/$WINDOW/crosslink.window.${K}mer.jf -c -t|sort > motif/$NAME/$WINDOW/crosslink.window.${K}mer.dumps
 
 # permutation 100 times
-for i in {0..24}; do  echo $i ; done|parallel --gnu "bin/iCLIP_jellyfish_shuffle_paralle.sh $WINDOW $GENOME $GENOMESIZE $EXONS $K {}"
+for i in {0..24}; do  echo $i ; done|parallel --gnu "bin/iCLIP_jellyfish_shuffle_paralle.sh $NAME/$WINDOW $GENOME $GENOMESIZE $EXONS $K {}"
 
 cat motif/$NAME/$WINDOW/*.dumps|cut -f1|sort|uniq > motif/$NAME/$WINDOW/crosslink.window.${K}mer.list
 bin/iCLIP_motif_enrich.R motif/$NAME/$WINDOW crosslink.window.${K}mer.list crosslink.window.${K}mer.dumps *random.${K}mer.*.dumps motif/$NAME/$WINDOW/motifs.${K}mer
