@@ -21,7 +21,7 @@ fi
 
 bedtools getfasta -fi $GENOME -bed motif/$NAME/$WINDOW/crosslink.window.bed -name -s -fo motif/$NAME/$WINDOW/crosslink.window.fa
 jellyfish count -m $K -s 100M -t $CPU motif/$NAME/$WINDOW/crosslink.window.fa -o motif/$NAME/$WINDOW/crosslink.window.${K}mer.jf
-jellyfish dump motif/$NAME/$WINDOW/crosslink.window.${K}mer.jf -c -t|sort > motif/$NAME/$WINDOW/crosslink.window.${K}mer.dumps
+jellyfish dump motif/$NAME/$WINDOW/crosslink.window.${K}mer.jf_0 -c -t|sort > motif/$NAME/$WINDOW/crosslink.window.${K}mer.dumps
 
 # permutation 100 times
 for i in {0..24}; do  echo $i ; done|parallel --gnu "bin/iCLIP_jellyfish_shuffle_paralle.sh $NAME/$WINDOW $GENOME $GENOMESIZE $EXONS $K {}"
