@@ -17,7 +17,12 @@ for (i in 1:length(qc$sample)) {
   x <- read.table(paste0('xlsites/', qc$sample[i], '_reads_unique.bed'))
   y <- read.table(paste0('peaks/', qc$sample[i], '_reads_unique_peaks.bed'))
   z <- read.table(paste0('peaks/', qc$sample[i], '_reads_unique_peaks_clusters.bed'))
-  stat_tab[i, ] <- c(mapping_stat[mapping_stat$V1 == qc$sample[i], 3], nrow(x), nrow(y), z[nrow(z),7])
+  if (length(qc$sample) > 1) {
+    stat_tab[i, ] <- c(mapping_stat[mapping_stat$V1 == qc$sample[i], 3], nrow(x), nrow(y), z[nrow(z),7])
+  }
+  else {
+    stat_tab[i, ] <- c(mapping_stat[, 2], nrow(x), nrow(y), z[nrow(z),7])
+  }
 }
 
 write.table(cbind(qc, stat_tab), 'table/stats_tab.tsv', row.names = F, quote = F, sep = '\t')
