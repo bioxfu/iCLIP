@@ -17,6 +17,8 @@ samples:
 
 adapt: TGAGATCGGAAG
 
+adapt_error: 0.25
+
 cpu: 8
 
 mismatch: 2

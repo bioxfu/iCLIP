@@ -9,6 +9,7 @@ rule all:
 		expand('dedup/{sample}.dedup.fa', sample=config['samples']),
 		expand('mapping/{sample}', sample=config['samples']),
 		expand('mapping/{sample}/Aligned.sortedByCoord.out.bam', sample=config['samples']),
+		expand('table/{sample}_aligned_stat', sample=config['samples']),
 		expand('xlsites/{sample}_reads_unique.bed', sample=config['samples']),
 		expand('xlsites/{sample}_reads_multiple.bed', sample=config['samples']),
 		expand('xlsites/{sample}_reads_skipped.bam', sample=config['samples']),
@@ -55,9 +56,11 @@ rule trim3adapter:
 		'trim/{sample}.trim3adapter.fastq.gz'
 	params:
 		conda = config['conda_path'],
-		adapt = config['adapt']
+		adapt = config['adapt'],
+		error = config['adapt_error']
 	shell:
-		 "{params.conda}/cutadapt -f fastq -a {params.adapt} -m15 {input} | gzip -c > {output}"
+		 "{params.conda}/cutadapt --error-rate {params.error} -f fastq -a {params.adapt} -m25 -M58 {input} | gzip -c > {output}"
+
 
 rule fastqc_trim:
 	input:
@@ -93,6 +96,14 @@ rule mapping:
 		cpu = config['cpu']
 	shell:
 		'mkdir -p {output.dir} && export ICOUNT_TMP_ROOT={output.dir}.tmp && {params.conda}/iCount mapstar -mis {params.mismatch} --threads {params.cpu} {input} {params.genome} {output.dir} --annotation {params.annotation}'
+
+rule bam_stat:
+	input:
+		'mapping/{sample}/Aligned.sortedByCoord.out.bam'
+	output:
+		'table/{sample}_aligned_stat'
+	shell:
+		'samtools view {input} | bin/sam_stat.py > {output}'
 
 rule xlsites_reads:
 	input:
