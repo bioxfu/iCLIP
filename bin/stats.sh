@@ -1,6 +1,7 @@
 TYPE=$1
 
-grep 'Number of input reads' mapping/*/Log.final.out|sed -r 's/:\s+?/\t/'|sed  's/ |//'|sed 's/ /_/g'|sed 's/\/Log.final.out//'|sed 's/mapping\///' > mapping/stat.tsv
-grep 'Uniquely mapped reads number' mapping/*/Log.final.out|sed -r 's/:\s+?/\t/'|sed  's/ |//'|sed 's/ /_/g'|sed 's/\/Log.final.out//'|sed 's/mapping\///' >> mapping/stat.tsv
+grep 'Number_of_input_reads' table/*_aligned_stat|sed -r 's/:\s+?/\t/g'|sed 's/_aligned_stat//'|sed 's/table\///' > table/stat.tsv
+grep 'Number_of_aligned_reads' table/*_aligned_stat|sed -r 's/:\s+?/\t/g'|sed 's/_aligned_stat//'|sed 's/table\///' >> table/stat.tsv
+grep 'Number_of_unique_aligned_reads' table/*_aligned_stat|sed -r 's/:\s+?/\t/g'|sed 's/_aligned_stat//'|sed 's/table\///' >> table/stat.tsv
 
 if [ $TYPE == 'no_rep' ]; then bin/stats_no_rep.R; else bin/stats.R; fi
