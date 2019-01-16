@@ -43,8 +43,8 @@ mkdir ~/Project/${GROUP}_${DATE}
 ### 4. Clone the repository
 ```
 cd ~/Project/${GROUP}_${DATE}
-git clone https://github.com/bioxfu/iCount
-cd iCount
+git clone https://github.com/bioxfu/iCLIP
+cd iCLIP
 ```
 
 ### 5. Create *config.yaml* and *Snakefile* based on the examples
