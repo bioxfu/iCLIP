@@ -15,6 +15,8 @@ samples:
   - Mecp2_expt_rep2.CCAC
   - Mecp2_expt_rep3.GGCA
 
+barcode: 3+4+2
+
 adapt: TGAGATCGGAAG
 
 adapt_error: 0.25

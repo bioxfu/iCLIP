@@ -33,11 +33,13 @@ rule all:
 
 rule split_fastq:
 	input:
-		config['raw_reads']
+		config['raw_reads'],
 	output:
 		'fastq/{sample}.fastq.gz'
+	params:
+		barcode = config['barcode']
 	shell:
-		'bin/split_fastq_by_barcode.py {input} {output}'
+		'bin/split_fastq_by_barcode_{params.barcode}.py {input} {output}'
 
 rule fastqc_raw:
 	input:
@@ -78,9 +80,10 @@ rule remove_PCR_duplicates:
 	output:
 		'dedup/{sample}.dedup.fa'
 	params:
-		conda = config['conda_path']
+		conda = config['conda_path'],
+		barcode = config['barcode']
 	shell:
-		 "zcat {input} | {params.conda}/fastq_to_fasta -Q33 -r -n | bin/split_barcode.py | sort | uniq | cut -f1 | bin/seq2fasta.py > {output}"
+		 "zcat {input} | {params.conda}/fastq_to_fasta -Q33 -r -n | bin/split_barcode_{params.barcode}.py | sort | uniq | cut -f1 | bin/seq2fasta.py > {output}"
 
 rule mapping:
 	input:
