@@ -1,7 +1,7 @@
 # iCLIP Workflow Tutorial
 ### 1. Install iCount (optional)
 ```
-conda create -n icount icount python=3.6 snakemake=3.13.3 fastqc jellyfish=1.1.11 fastx_toolkit sra-tools
+conda create -n icount icount python=3.6 snakemake=3.13.3 fastqc jellyfish=1.1.11 fastx_toolkit sra-tools igvtools
 source activate icount
 ```
 
