@@ -26,7 +26,7 @@ rule all:
 		'merge/merge_ALL_crosslink_sites_summary.tab',
 		'merge/merge_ALL_crosslink_sites_sig_summary.tab',
 		'figure/crosslink_sites_distr.pdf',
-		'table/stats_tab.tsv',
+		'table/stats_table.tsv',
 		'track/merge_ALL_crosslink_sites.tdf',
 		'track/merge_ALL_crosslink_sites_sig.tdf',
 
@@ -61,7 +61,7 @@ rule trim3adapter:
 		adapt = config['adapt'],
 		error = config['adapt_error']
 	shell:
-		 "{params.conda}/cutadapt --error-rate {params.error} -f fastq -a {params.adapt} -m25 -M58 {input} | gzip -c > {output}"
+		 "{params.conda}/cutadapt --error-rate {params.error} -f fastq -a {params.adapt} -m25 {input} | gzip -c > {output}"
 
 
 rule fastqc_trim:
@@ -249,7 +249,7 @@ rule stats_tab:
 	input:
 		["xlsites/{sample}_reads_unique.bed".format(sample=x) for x in config['samples']],
 	output:
-		'table/stats_tab.tsv'		
+		'table/stats_table.tsv'		
 	shell:
 		'bin/stats.sh'
 

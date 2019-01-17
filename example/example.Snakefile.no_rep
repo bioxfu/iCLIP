@@ -25,7 +25,7 @@ rule all:
 		expand('figure/{sample}_crosslink_sites_distr.pdf', sample=config['samples']),
 		expand('track/{sample}_reads_unique_peaks.tdf', sample=config['samples']),
 		expand('track/{sample}_reads_unique.tdf', sample=config['samples']),
-		'table/stats_tab.tsv',
+		'table/stats_table.tsv',
 
 
 rule split_fastq:
@@ -58,7 +58,7 @@ rule trim3adapter:
 		adapt = config['adapt'],
 		error = config['adapt_error']
 	shell:
-		 "{params.conda}/cutadapt --error-rate {params.error} -f fastq -a {params.adapt} -m25 -M58 {input} | gzip -c > {output}"
+		 "{params.conda}/cutadapt --error-rate {params.error} -f fastq -a {params.adapt} -m25 {input} | gzip -c > {output}"
 
 rule fastqc_trim:
 	input:
@@ -216,8 +216,10 @@ rule xlsites_distr:
 rule stats_tab:
 	input:
 		["xlsites/{sample}_reads_unique.bed".format(sample=x) for x in config['samples']],
+		["peaks/{sample}_reads_unique_peaks.bed".format(sample=x) for x in config['samples']],
+		["peaks/{sample}_reads_unique_peaks_clusters.bed".format(sample=x) for x in config['samples']],
 	output:
-		'table/stats_tab.tsv'
+		'table/stats_table.tsv'
 	shell:
 		'bin/stats.sh no_rep'
 
