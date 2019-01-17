@@ -25,4 +25,4 @@ sites_sig <- as.numeric(sub(' .+', '', system('wc -l merge/merge_ALL_crosslink_s
 sites_cluster <- as.numeric(sub(' .+', '', system('cut -f7 merge/merge_ALL_crosslink_sites_sig_clusters.bed|sort|uniq|wc -l', intern = T)))
 
 stat_tab[4, 5:7] <- c(sites_all, sites_sig, sites_cluster)
-write.table(cbind(qc, stat_tab), 'table/stats_table_final.tsv', row.names = F, quote = F, sep = '\t')
+write.table(cbind(qc, stat_tab), 'table/stats_table.tsv', row.names = F, quote = F, sep = '\t')

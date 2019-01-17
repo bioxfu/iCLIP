@@ -25,4 +25,4 @@ for (i in 1:length(qc$sample)) {
   }
 }
 
-write.table(cbind(qc, stat_tab), 'table/stats_table_final.tsv', row.names = F, quote = F, sep = '\t')
+write.table(cbind(qc, stat_tab), 'table/stats_table.tsv', row.names = F, quote = F, sep = '\t')
