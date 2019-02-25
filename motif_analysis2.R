@@ -24,8 +24,8 @@ cal_zscore <- function(dumps, N) {
 
 for (N in 1:10) {
   
-  zscore1 <- cal_zscore('merge/WT_crosslink_sites_exc_KO_intron_filt_motif_25K_window_5mer.dumps', N)
-  zscore2 <- cal_zscore('merge/KO_crosslink_sites_exc_WT_intron_filt_motif_25K_window_5mer.dumps', N)
+  zscore1 <- cal_zscore('merge/WT_crosslink_sites_exc_KO_intron_filt_motif_50K_window_5mer.dumps', N)
+  zscore2 <- cal_zscore('merge/KO_crosslink_sites_exc_WT_intron_filt_motif_50K_window_5mer.dumps', N)
   colnames(zscore1) <- c('WT_specific.zscore', 'WT_specific.rank')
   colnames(zscore2) <- c('KO_specific.zscore', 'KO_specific.rank')
   
@@ -41,7 +41,7 @@ for (N in 1:10) {
   write.table(all, paste0('merge/zscore_all_random', N, '.tsv'), quote=F, sep='\t', row.names=F)
   write.table(motifs, paste0('merge/zscore_motif_hnRNP_random', N, '.tsv'), quote=F, sep='\t', row.names=F)
   
-  motifs <- motifs[-c(1:2),]
+  motifs <- motifs[motifs$class != 'Fox',]
   x <- sort(motifs$rank_diff)
   n <- motifs$motif[order(motifs$rank_diff)]
   y <- as.character(motifs$class[order(motifs$rank_diff)])
@@ -49,8 +49,8 @@ for (N in 1:10) {
   y[y=='blue'] <- cols[2]
   
   pdf(paste0('figure/zscore_motif_hnRNP_random', N, '.pdf'))
-  barplot(x, names.arg = n, las=2, col=y, border = NA, main='Z-score rank difference of hnRNP motifs', ylab='WT_specific - KO_specific', space = 0.5, ylim=c(-140, 40), yaxt='n')
-  axis(2, at=seq(-140, 40, 20), lab=seq(-140, 40, 20))
+  barplot(x, names.arg = n, las=2, col=y, border = NA, main='Z-score rank difference of hnRNP motifs', ylab='WT_specific - KO_specific', space = 0.5, ylim=c(-320, 80), yaxt='n')
+  axis(2, at=seq(-320, 80, 40), lab=seq(-320, 80, 40))
   legend('bottomright', c('hnRNP M motifs', 'hnRNP C motifs', 'hnRNP H motifs'), fill = c(cols[2], cols[3], 'gray'), bty='n', border = NA)
   dev.off()
   
