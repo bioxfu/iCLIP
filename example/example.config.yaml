@@ -16,6 +16,7 @@ samples:
   - Mecp2_expt_rep3.GGCA
 
 barcode: 3+4+2
+#barcode: 5+6+4
 
 adapt: TGAGATCGGAAG
 

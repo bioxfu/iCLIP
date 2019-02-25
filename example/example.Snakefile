@@ -110,7 +110,8 @@ rule bam_stat:
 
 rule xlsites_reads:
 	input:
-		'mapping/{sample}/Aligned.sortedByCoord.out.bam'
+		bam = 'mapping/{sample}/Aligned.sortedByCoord.out.bam',
+		tmp = 'mapping/{sample}.tmp'
 	output:
 		'xlsites/{sample}_reads_unique.bed',
 		'xlsites/{sample}_reads_multiple.bed',
@@ -118,11 +119,12 @@ rule xlsites_reads:
 	params:
 		conda = config['conda_path']
 	shell:
-		'{params.conda}/iCount xlsites {input} {output} --group_by start --quant reads'
+		'export ICOUNT_TMP_ROOT={input.tmp} && {params.conda}/iCount xlsites {input.bam} {output} --group_by start --quant reads'
 
 rule significant_xlsites:
 	input:
-		'xlsites/{sample}_reads_unique.bed',
+		bed = 'xlsites/{sample}_reads_unique.bed',
+		tmp = 'mapping/{sample}.tmp'
 	output:
 		bed = 'peaks/{sample}_reads_unique_peaks.bed',
 		tsv = 'peaks/{sample}_reads_unique_peaks_scores.tsv'
@@ -131,7 +133,7 @@ rule significant_xlsites:
 		segmentation = config['segmentation'],
 		FDR = config['FDR']
 	shell:
-		'{params.conda}/iCount peaks {params.segmentation} {input} {output.bed} --scores {output.tsv} --fdr {params.FDR}'
+		'export ICOUNT_TMP_ROOT={input.tmp} && {params.conda}/iCount peaks {params.segmentation} {input.bed} {output.bed} --scores {output.tsv} --fdr {params.FDR}'
 
 rule reproduce:
 	input:
@@ -159,7 +161,7 @@ rule significant_merged_xlsites:
 		segmentation = config['segmentation'],
 		FDR = config['FDR']
 	shell:
-		'{params.conda}/iCount peaks {params.segmentation} {input} {output.bed} --fdr {params.FDR}'
+		'{params.conda}/iCount peaks {params.segmentation} {input} {output} --fdr {params.FDR}'
 
 rule clusters:
 	input:
