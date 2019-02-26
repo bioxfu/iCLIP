@@ -15,6 +15,8 @@ rule all:
 		expand('xlsites/{sample}_reads_skipped.bam', sample=config['samples']),
 		expand('peaks/{sample}_reads_unique_peaks.bed', sample=config['samples']),
 		expand('peaks/{sample}_reads_unique_peaks_scores.tsv', sample=config['samples']),
+		expand('peaks/{sample}_reads_unique_peaks.bedGraph', sample=config['samples']),
+		expand('track/{sample}_reads_unique_peaks_CPM.tdf', sample=config['samples']),
 		'reproduce/crosslink_sites_reproduce.pdf',
 		'merge/merge_ALL_crosslink_sites.bed',
 		'merge/merge_ALL_crosslink_sites_sig.bed',
@@ -27,8 +29,6 @@ rule all:
 		'merge/merge_ALL_crosslink_sites_sig_summary.tab',
 		'figure/crosslink_sites_distr.pdf',
 		'table/stats_table.tsv',
-		'track/merge_ALL_crosslink_sites.tdf',
-		'track/merge_ALL_crosslink_sites_sig.tdf',
 
 
 rule split_fastq:
@@ -257,23 +257,18 @@ rule stats_tab:
 
 rule bed2bedgraph:
 	input:
-		sig = 'merge/merge_ALL_crosslink_sites_sig.bed',
-		ALL = 'merge/merge_ALL_crosslink_sites.bed'
+		'peaks/{sample}_reads_unique_peaks.bed'
 	output:
-		sig = 'track/merge_ALL_crosslink_sites_sig.bedGraph',
-		ALL = 'track/merge_ALL_crosslink_sites.bedGraph'
+		'peaks/{sample}_reads_unique_peaks.bedGraph'
 	shell:
-		"cut -f1,2,3,5 {input.sig} > {output.sig}; cut -f1,2,3,5 {input.ALL} > {output.ALL}"
+		"bin/normalized_bedgraph.sh {input}"
 
 rule bedgraph2tdf:
 	input:
-		sig = 'track/merge_ALL_crosslink_sites_sig.bedGraph',
-		ALL = 'track/merge_ALL_crosslink_sites.bedGraph'
+		'peaks/{sample}_reads_unique_peaks.bedGraph'
 	output:
-		sig = 'track/merge_ALL_crosslink_sites_sig.tdf',
-		ALL = 'track/merge_ALL_crosslink_sites.tdf'
+		'track/{sample}_reads_unique_peaks_CPM.tdf'
 	params:
 		IGV = config['IGV']
 	shell:
-		"igvtools toTDF {input.sig} {output.sig} {params.IGV}; igvtools toTDF {input.ALL} {output.ALL} {params.IGV}"
-
+		"igvtools toTDF {input} {output} {params.IGV}"
