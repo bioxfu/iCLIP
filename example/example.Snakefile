@@ -17,6 +17,8 @@ rule all:
 		expand('peaks/{sample}_reads_unique_peaks_scores.tsv', sample=config['samples']),
 		expand('peaks/{sample}_reads_unique_peaks.bedGraph', sample=config['samples']),
 		expand('track/{sample}_reads_unique_peaks_CPM.tdf', sample=config['samples']),
+		expand('xlsites/{sample}_reads_unique.bedGraph', sample=config['samples']),
+		expand('track/{sample}_reads_unique_all_CPM.tdf', sample=config['samples']),
 		'reproduce/crosslink_sites_reproduce.pdf',
 		'merge/merge_ALL_crosslink_sites.bed',
 		'merge/merge_ALL_crosslink_sites_sig.bed',
@@ -255,7 +257,7 @@ rule stats_tab:
 	shell:
 		'bin/stats.sh'
 
-rule bed2bedgraph:
+rule bed2bedgraph_sig:
 	input:
 		'peaks/{sample}_reads_unique_peaks.bed'
 	output:
@@ -263,11 +265,29 @@ rule bed2bedgraph:
 	shell:
 		"bin/normalized_bedgraph.sh {input}"
 
-rule bedgraph2tdf:
+rule bed2bedgraph_all:
+	input:
+		'xlsites/{sample}_reads_unique.bed'
+	output:
+		'xlsites/{sample}_reads_unique.bedGraph'
+	shell:
+		"bin/normalized_bedgraph.sh {input}"
+
+rule bedgraph2tdf_sig:
 	input:
 		'peaks/{sample}_reads_unique_peaks.bedGraph'
 	output:
 		'track/{sample}_reads_unique_peaks_CPM.tdf'
+	params:
+		IGV = config['IGV']
+	shell:
+		"igvtools toTDF {input} {output} {params.IGV}"
+
+rule bedgraph2tdf_all:
+	input:
+		'xlsites/{sample}_reads_unique.bedGraph'
+	output:
+		'track/{sample}_reads_unique_all_CPM.tdf'
 	params:
 		IGV = config['IGV']
 	shell:
