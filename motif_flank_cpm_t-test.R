@@ -22,10 +22,10 @@ for (i in 1:3) {
     
     p <- t.test(x, y, alternative = 'greater')$p.value
     
-    mat <- rbind(mat, c(intron, flank, mean(x), mean(y), p))
+    mat <- rbind(mat, c(intron, flank, x, mean(x), y, mean(y), p))
   }
 }
 
-colnames(mat) <- c('Region', 'flank', 'WT.mean', 'KO.mean', 'T-test.pvalue(one-side)')
+colnames(mat) <- c('Region', 'flank', 'WT.rep1', 'WT.rep2', 'WT.rep3', 'WT.mean', 'KO.rep1', 'KO.rep2', 'KO.rep3', 'KO.mean', 'T-test.pvalue(one-side)')
 
 write.table(mat, paste0(input, '_motif_flank_cpm_t-test.tsv'), sep='\t', quote = F, row.names = F)
