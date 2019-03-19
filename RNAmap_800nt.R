@@ -29,13 +29,13 @@ p_cutoff <- as.numeric(args[5])
 # bg_exon <- as.numeric(9740)
 # p_cutoff <- as.numeric(0.000001)
 
-en_f <- init(paste0(prefix, "/splice_sig_rnamap_en_f.filt"))
-en_r <- init(paste0(prefix, "/splice_sig_rnamap_en_r.filt"))
-si_f <- init(paste0(prefix, "/splice_sig_rnamap_si_f.filt"))
-si_r <- init(paste0(prefix, "/splice_sig_rnamap_si_r.filt"))
-bg_f <- init(paste0(prefix, "/splice_nonsig_rnamap_f.filt"))
-bg_r <- init(paste0(prefix, "/splice_nonsig_rnamap_r.filt"))
-output <- paste0(prefix, "/RNAmap_filt_800nt.pdf")
+en_f <- init(paste0(prefix, "splice_sig_rnamap_en_f.filt"))
+en_r <- init(paste0(prefix, "splice_sig_rnamap_en_r.filt"))
+si_f <- init(paste0(prefix, "splice_sig_rnamap_si_f.filt"))
+si_r <- init(paste0(prefix, "splice_sig_rnamap_si_r.filt"))
+bg_f <- init(paste0(prefix, "splice_nonsig_rnamap_f.filt"))
+bg_r <- init(paste0(prefix, "splice_nonsig_rnamap_r.filt"))
+output <- paste0(prefix, "RNAmap_filt_800nt.pdf")
 
 en <- (en_f + rev(en_r))/en_exon * 100
 si <- (si_f + rev(si_r))/si_exon * 100 * -1
@@ -46,12 +46,16 @@ en_pvalue = apply(en_2, 1, function(x) {fisher.test(matrix(x,nrow=2,ncol=2))$p.v
 en_sig = en_pvalue < p_cutoff
 en_pvalue[en_sig] = en[en_sig]
 en_pvalue[!en_sig] = 100000
+en_pvalue[abs(en_pvalue)<10] = 100000
+print(sum(en_pvalue < 100000))
 
 si_2 <- cbind(si_f + rev(si_r), si_exon, bg_f + rev(bg_r), bg_exon)
 si_pvalue = apply(si_2, 1, function(x) {fisher.test(matrix(x,nrow=2,ncol=2))$p.value})
 si_sig = si_pvalue < p_cutoff
 si_pvalue[si_sig] = si[si_sig]
 si_pvalue[!si_sig] = 100000
+si_pvalue[abs(si_pvalue)<10] = 100000
+print(sum(si_pvalue < 100000))
 
 pdf(output,width=10,heigh=5)
 y_min <- min(c(en, si, bg))

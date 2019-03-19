@@ -1,8 +1,12 @@
 source activate gmatic
 GENOME=$HOME/Gmatic7/iCount/homo_sapiens.88.fa
 #INPUT=MeCP2_KO_SE_RPKM_2
-INPUT=MeCP2_KO_RBFOX2_KI_SE_RPKM_2_olp
+#INPUT=MeCP2_KO_RBFOX2_KI_SE_RPKM_2_olp
 
+# all SE
+cat /data1/HJY/Project/20181121JY/AltSplicing2/rMATS_out_reformat/*.SE|cut -f1,2|sort|uniq|grep -v 'strand' > all_SE
+Rscript all_SE_filt_RPKM.R
+INPUT=MeCP2_KO_RBFOX2_KI_SE_RPKM_2_complement
 #chr10:+:101232253:101232434:101229610:101229814:101237938:101238237
 
 grep -v 'exonStart_0base' ${INPUT}|tr ':' '\t'|awk '{print $1"\t"$6"\t"$3"\t.\t.\t"$2"\n"$1"\t"$4"\t"$7"\t.\t.\t"$2}'|sed 's/chr//' > ${INPUT}_intron.bed
