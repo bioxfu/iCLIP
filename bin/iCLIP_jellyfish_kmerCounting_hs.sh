@@ -3,9 +3,10 @@ K=$2
 WINDOW=$3
 NAME=$4
 
-GENOME=$HOME/Gmatic7/iCount/mus_musculus.88.fa
-GENOMESIZE=$HOME/Gmatic7/iCount/mus_musculus.88.chrLength
-EXONS=$HOME/Gmatic7/iCount/mus_musculus.88.pc.gene.bed
+GENOME=$HOME/Gmatic7/iCount/homo_sapiens.88.fa
+GENOMESIZE=$HOME/Gmatic7/iCount/homo_sapiens.88.chrLength
+EXONS=$HOME/Gmatic7/iCount/homo_sapiens.88.pc.gene.bed
+
 CPU=8
 
 mkdir -p motif/$NAME/$WINDOW
