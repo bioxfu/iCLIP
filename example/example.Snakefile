@@ -113,21 +113,21 @@ rule bam_stat:
 rule xlsites_reads:
 	input:
 		bam = 'mapping/{sample}/Aligned.sortedByCoord.out.bam',
-		tmp = 'mapping/{sample}.tmp'
 	output:
-		'xlsites/{sample}_reads_unique.bed',
-		'xlsites/{sample}_reads_multiple.bed',
-		'xlsites/{sample}_reads_skipped.bam'
+		tmp = 'mapping/{sample}.tmp',
+		unique = 'xlsites/{sample}_reads_unique.bed',
+		multiple = 'xlsites/{sample}_reads_multiple.bed',
+		skip = 'xlsites/{sample}_reads_skipped.bam'
 	params:
 		conda = config['conda_path']
 	shell:
-		'export ICOUNT_TMP_ROOT={input.tmp} && {params.conda}/iCount xlsites {input.bam} {output} --group_by start --quant reads'
+		'export ICOUNT_TMP_ROOT={output.tmp} && {params.conda}/iCount xlsites {input.bam} {output.unique} {output.multiple} {output.skip} --group_by start --quant reads'
 
 rule significant_xlsites:
 	input:
 		bed = 'xlsites/{sample}_reads_unique.bed',
-		tmp = 'mapping/{sample}.tmp'
 	output:
+		tmp = 'mapping/{sample}.tmp',
 		bed = 'peaks/{sample}_reads_unique_peaks.bed',
 		tsv = 'peaks/{sample}_reads_unique_peaks_scores.tsv'
 	params:
@@ -279,9 +279,10 @@ rule bedgraph2tdf_sig:
 	output:
 		'track/{sample}_reads_unique_peaks_CPM.tdf'
 	params:
+		conda = config['conda_path'],
 		IGV = config['IGV']
 	shell:
-		"igvtools toTDF {input} {output} {params.IGV}"
+		"/cluster/home/xfu/miniconda2/envs/gmatic/bin/igvtools toTDF {input} {output} {params.IGV}"
 
 rule bedgraph2tdf_all:
 	input:
@@ -289,6 +290,7 @@ rule bedgraph2tdf_all:
 	output:
 		'track/{sample}_reads_unique_all_CPM.tdf'
 	params:
+		conda = config['conda_path'],
 		IGV = config['IGV']
 	shell:
-		"igvtools toTDF {input} {output} {params.IGV}"
+		"/cluster/home/xfu/miniconda2/envs/gmatic/bin/igvtools toTDF {input} {output} {params.IGV}"
