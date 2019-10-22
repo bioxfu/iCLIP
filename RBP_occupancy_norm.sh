@@ -28,9 +28,9 @@ grep '+' MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhance_silence|grep 'silenced'|cut -f1|se
 grep '-' MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhance_silence|grep 'silenced'|cut -f1|sed 's/chr//'|tr '|' '\t'|sort|uniq|awk '{print $1"\t"$5-100"\t"$5+50"\t.\t.\t"$2}' >> MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS.bed
 
 # 1: at least 1 (>=1)
-## normalized the cDNA counts by gene length and total number of reads
-python bin/RBP_occupancy_norm.py $GENE_LEN occupancy/merge_MeCP2_KO.bed 1 > occupancy/merge_MeCP2_KO_norm.bed
-python bin/RBP_occupancy_norm.py $GENE_LEN occupancy/merge_MeCP2_WT.bed 1 > occupancy/merge_MeCP2_WT_norm.bed
+## normalized the cDNA counts by total counts of each gene
+python bin/RBP_occupancy_norm.py occupancy/merge_MeCP2_KO.bed 1 > occupancy/merge_MeCP2_KO_norm.bed
+python bin/RBP_occupancy_norm.py occupancy/merge_MeCP2_WT.bed 1 > occupancy/merge_MeCP2_WT_norm.bed
 
 ## link the normalized crosslink sites with splicing sites
 bedtools intersect -a MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS.bed -b occupancy/merge_MeCP2_KO_norm.bed -wa -wb -s > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_KO_occu
@@ -43,16 +43,15 @@ bedtools intersect -a MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS.bed -
 bedtools intersect -a MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS.bed -b occupancy/merge_MeCP2_WT_norm.bed -wa -wb -s > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_WT_occu
 
 ## calculate the distance between cross link sites and splicing sites
-## sum the normalized counts at each position
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_KO_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_WT_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_KO_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_WT_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_KO_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_WT_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_KO_dist2occu
-cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o sum > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_WT_dist2occu
-
+## average the normalized counts at each position
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_KO_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_WT_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_KO_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_upstream_3SS_WT_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_KO_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_downstream_5SS_WT_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_KO_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_KO_dist2occu
+cat occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_WT_occu |awk '{if($6=="+"){print $8-$2"\t"$11} if($6=="-"){print 149-($8-$2)"\t"$11}}'|sort -n|groupBy -g 1 -c 2 -o mean > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_silenced_downstream_5SS_WT_dist2occu
 
 
 #grep '+' MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhance_silence|grep 'enhanced'|cut -f1|sed 's/chr//'|tr '|' '\t'|sort|uniq|awk '{print $1"\t"$4-50"\t"$4+100"\t.\t.\t"$2}' >  MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_5SS.bed
