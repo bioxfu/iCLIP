@@ -29,8 +29,11 @@ grep '-' MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhance_silence|grep 'silenced'|cut -f1|se
 
 # 1: at least 1 (>=1)
 ## normalized the cDNA counts by total counts of each gene
-python bin/RBP_occupancy_norm.py occupancy/merge_MeCP2_KO.bed 1 > occupancy/merge_MeCP2_KO_norm.bed
-python bin/RBP_occupancy_norm.py occupancy/merge_MeCP2_WT.bed 1 > occupancy/merge_MeCP2_WT_norm.bed
+#python bin/RBP_occupancy_norm.py occupancy/merge_MeCP2_KO.bed 1 > occupancy/merge_MeCP2_KO_norm.bed
+#python bin/RBP_occupancy_norm.py occupancy/merge_MeCP2_WT.bed 1 > occupancy/merge_MeCP2_WT_norm.bed
+
+python bin/RBP_occupancy_norm_RPKM.py HEK293T_KO_RPKM.tsv occupancy/merge_MeCP2_KO.bed 1 > occupancy/merge_MeCP2_KO_norm.bed
+python bin/RBP_occupancy_norm_RPKM.py HEK293T_WT_RPKM.tsv occupancy/merge_MeCP2_WT.bed 1 > occupancy/merge_MeCP2_WT_norm.bed
 
 ## link the normalized crosslink sites with splicing sites
 bedtools intersect -a MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS.bed -b occupancy/merge_MeCP2_KO_norm.bed -wa -wb -s > occupancy/MeCP2_KO_RBFOX2_KI_SE_RPKM_2_enhanced_upstream_3SS_KO_occu
